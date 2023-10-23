@@ -25,7 +25,7 @@ int main()
         case 1:
             printf("Informe o caminho para a imagem: ");
             scanf("%s", filename);
-            printf("erro aki");
+            printf("erro aki1");
             image = load_from_ppm(filename);
             printf("erro aki");
             if (image == NULL)
