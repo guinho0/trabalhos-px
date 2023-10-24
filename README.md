@@ -1,6 +1,6 @@
 # Trabalho 1 Estrutura de Dados - TAD Image - Processador de Imagens PPM
-#Alunos: Thiago Augusto de Carvalho e Ian Gandine
-#Professor: Thiago Paixão
+# Alunos: Thiago Augusto de Carvalho e Ian Gandine
+# Professor: Thiago Paixão
 
 ## Introdução
 
