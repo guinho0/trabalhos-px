@@ -1,45 +1,42 @@
+#include "image.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "image.h"
 
-// P3 = formato em PPM texto
-// p6 = formato em PPM binário
+#define PPM_MAGIC "P3"
+#define PPM_MAX_VALUE 255
+
+typedef struct image
+{
+    int rows;
+    int cols;
+    char type[3];
+    unsigned char *data;
+} Image;
 
 Image *create(int rows, int cols, char type[])
 {
-    Image *image = (Image *)malloc(sizeof(Image));
+    Image *image = malloc(sizeof(Image));
     if (image == NULL)
     {
-        fprintf(stderr, "Falha ao alocar memoria para a imagem.\n");
-        exit(1);
+        return NULL;
     }
+
     image->rows = rows;
     image->cols = cols;
     strcpy(image->type, type);
 
-    image->pixels = (unsigned char **)malloc(rows * sizeof(unsigned char *));
-    if (image->pixels == NULL)
+    if (strcmp(type, "P2") == 0)
     {
-        fprintf(stderr, "Falha ao alocar memoria para pixels.\n");
-        free(image);
-        exit(1);
+        image->data = malloc(rows * cols * sizeof(unsigned char));
     }
-
-    for (int i = 0; i < rows; i++)
+    else if (strcmp(type, "P3") == 0)
     {
-        image->pixels[i] = (unsigned char *)malloc(cols * sizeof(unsigned char));
-        if (image->pixels[i] == NULL)
-        {
-            fprintf(stderr, "Falha ao alocar memoria para pixels.\n");
-            for (int j = 0; j < i; j++)
-            {
-                free(image->pixels[j]);
-            }
-            free(image->pixels);
-            free(image);
-            exit(1);
-        }
+        image->data = malloc(rows * cols * 3 * sizeof(unsigned char));
+    }
+    else
+    {
+        return NULL;
     }
 
     return image;
@@ -47,50 +44,58 @@ Image *create(int rows, int cols, char type[])
 
 Image *load_from_ppm(const char *filename)
 {
-    FILE *file = fopen(filename, "rb");
+    FILE *file = fopen(filename, "r");
     if (file == NULL)
     {
-        fprintf(stderr, "Falha ao abrir o arquivo: %s\n", filename);
         return NULL;
     }
 
-    char type[3];
-    int rows, cols, max_intensity;
-    fscanf(file, "%2s\n", type);
-    fscanf(file, "%d %d\n", &cols, &rows);
-    fscanf(file, "%d\n", &max_intensity);
+    // Lê o cabeçalho do arquivo
 
-    if (strcmp(type, "P3") != 0 && strcmp(type, "P6") != 0)
+    char magic[3];
+    fscanf(file, "%s\n", magic);
+    if (strcmp(magic, PPM_MAGIC) != 0)
     {
-        fprintf(stderr, "Formato de imagem invalido: %s\n", type);
         fclose(file);
         return NULL;
     }
 
-    Image *image = create(rows, cols, type);
-    unsigned char **pixels = image->pixels;
+    int rows, cols;
+    fscanf(file, "%d %d\n", &rows, &cols);
+    char type[3];
+    fscanf(file, "%s\n", type);
 
-    if (strcmp(type, "P3") == 0)
+    // Aloca memória para a imagem
+
+    Image *image = create(rows, cols, type);
+    if (image == NULL)
     {
-        // Leitura do formato texto P3
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                fscanf(file, "%hhu %hhu %hhu", &pixels[i][3 * j], &pixels[i][3 * j + 1], &pixels[i][3 * j + 2]);
-            }
-        }
+        fclose(file);
+        return NULL;
     }
-    else if (strcmp(type, "P6") == 0)
+
+    // Lê os pixels da imagem
+
+    unsigned char *data = image->data;
+    for (int i = 0; i < rows; i++)
     {
-        // Leitura do formato binário P6
-        for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
         {
-            fread(pixels[i], 3, cols, file);
+            if (strcmp(type, "P2") == 0)
+            {
+                fscanf(file, "%c ", &data[i * cols + j]);
+            }
+            else if (strcmp(type, "P3") == 0)
+            {
+                fscanf(file, "%c %c %c ", &data[i * cols * 3 + j * 3],
+                       &data[i * cols * 3 + j * 3 + 1],
+                       &data[i * cols * 3 + j * 3 + 2]);
+            }
         }
     }
 
     fclose(file);
+
     return image;
 }
 
@@ -99,60 +104,66 @@ void write_to_ppm(Image *image, const char *filename)
     FILE *file = fopen(filename, "w");
     if (file == NULL)
     {
-        fprintf(stderr, "Falha ao abrir o arquivo PPM de saída.\n");
         return;
     }
 
-    fprintf(file, "%s\n", image->type);
-    fprintf(file, "%d %d\n", image->cols, image->rows);
-    fprintf(file, "255\n");
+    // Escreve o cabeçalho do arquivo
 
+    fprintf(file, "%s\n", PPM_MAGIC); // alterei ppm_magic por image->type
+    fprintf(file, "%d %d\n", image->rows, image->cols);
+    fprintf(file, "%d\n", PPM_MAX_VALUE);
+
+    // Escreve os pixels da imagem
+
+    unsigned char *data = image->data;
     for (int i = 0; i < image->rows; i++)
     {
-        for (int j = 0; j < 3 * image->cols; j++)
+        for (int j = 0; j < image->cols; j++)
         {
-            fprintf(file, "%hhu ", image->pixels[i][j]);
+            if (strcmp(image->type, "P2") == 0)
+            {
+                fprintf(file, "%c ", data[i * image->cols + j]);
+            }
+            else if (strcmp(image->type, "P3") == 0)
+            {
+                fprintf(file, "%c %c %c ", data[i * image->cols * 3 + j * 3],
+                        data[i * image->cols * 3 + j * 3 + 1],
+                        data[i * image->cols * 3 + j * 3 + 2]);
+            }
         }
-        fprintf(file, "\n");
     }
 
     fclose(file);
 }
-
 void rgb_to_gray(Image *image_rgb, Image *image_gray)
 {
     if (image_rgb == NULL || image_gray == NULL)
     {
-        fprintf(stderr, "Imagem de entrada ou saída invalida.\n");
         return;
     }
 
-    if (strcmp(image_rgb->type, "P3") != 0 && strcmp(image_rgb->type, "P6") != 0)
+    if (strcmp(image_rgb->type, "P3") != 0)
     {
-        fprintf(stderr, "Conversao de tipo de imagem invalida.\n");
         return;
     }
 
-    for (int i = 0; i < image_rgb->rows; i++)
+    int rows = image_rgb->rows;
+    int cols = image_gray->cols;
+
+    unsigned char *data_rgb = image_rgb->data;
+    unsigned char *data_gray = image_gray->data;
+
+    for (int i = 0; i < rows; i++)
     {
-        for (int j = 0; j < image_rgb->cols; j++)
+        for (int j = 0; j < cols; j++)
         {
-            if (strcmp(image_rgb->type, "P3") == 0)
-            {
-                unsigned char r = image_rgb->pixels[i][3 * j];
-                unsigned char g = image_rgb->pixels[i][3 * j + 1];
-                unsigned char b = image_rgb->pixels[i][3 * j + 2];
-                unsigned char gray_value = (unsigned char)(0.299 * r + 0.587 * g + 0.114 * b);
-                image_gray->pixels[i][j] = gray_value;
-            }
-            else if (strcmp(image_rgb->type, "P6") == 0)
-            {
-                unsigned char r = image_rgb->pixels[i][j * 3];
-                unsigned char g = image_rgb->pixels[i][j * 3 + 1];
-                unsigned char b = image_rgb->pixels[i][j * 3 + 2];
-                unsigned char gray_value = (unsigned char)(0.299 * r + 0.587 * g + 0.114 * b);
-                image_gray->pixels[i][j] = gray_value;
-            }
+            int r = data_rgb[i * cols * 3 + j * 3];
+            int g = data_rgb[i * cols * 3 + j * 3 + 1];
+            int b = data_rgb[i * cols * 3 + j * 3 + 2];
+
+            int gray = 0.299 * r + 0.587 * g + 0.114 * b;
+
+            data_gray[i * cols + j] = gray;
         }
     }
 }
@@ -163,11 +174,6 @@ void free_image(Image *image)
         return;
     }
 
-    for (int i = 0; i < image->rows; i++)
-    {
-        free(image->pixels[i]);
-    }
-
-    free(image->pixels);
+    free(image->data);
     free(image);
 }

@@ -1,79 +1,100 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "image.h"
 
 int main()
 {
-    Image *image = NULL;
-    Image *gray_image = NULL;
+  Image *image = NULL;
+  Image *image_gray = NULL;
+  FILE *file;
 
+  while (1)
+  {
     int option;
-    char filename[100]; // Tamanho do caminho do arquivo
 
-    while (1)
+    printf("Menu:\n");
+    printf("1. Carregar imagem\n");
+    printf("2. Converter para níveis de cinza\n");
+    printf("3. Gravar imagem\n");
+    printf("4. Sair\n");
+    printf("Escolha uma opção: ");
+    scanf("%d", &option);
+
+    switch (option)
     {
-        printf("Menu:\n");
-        printf("1. Carregar imagem\n");
-        printf("2. Converter para niveis de cinza\n");
-        printf("3. Gravar imagem\n");
-        printf("4. Sair\n");
-        printf("Escolha uma opcao: ");
-        scanf("%d", &option);
+    case 1:
 
-        switch (option)
-        {
-        case 1:
-            printf("Informe o caminho para a imagem: ");
-            scanf("%s", filename);
-            printf("erro aki1");
-            image = load_from_ppm(filename);
-            printf("erro aki");
-            if (image == NULL)
-            {
-                printf("Falha ao carregar a imagem.\n");
-            }
-            break;
-        case 2:
-            if (image == NULL)
-            {
-                printf("Nenhuma imagem carregada.\n");
-            }
-            else
-            {
-                gray_image = create(image->rows, image->cols, "P2");
-                rgb_to_gray(image, gray_image);
-                printf("Imagem convertida para tons de cinza.\n");
-            }
-            break;
-        case 3:
-            if (gray_image == NULL)
-            {
-                printf("Nenhuma imagem em tons de cinza para gravar.\n");
-            }
-            else
-            {
-                printf("Informe o caminho de gravação da imagem em tons de cinza: ");
-                scanf("%s", filename);
-                write_to_ppm(gray_image, filename);
-                printf("Imagem gravada com sucesso.\n");
-            }
-            break;
-        case 4:
-            if (image != NULL)
-            {
-                free_image(image);
-            }
+      // Verifica se a imagem pode ser carregada
+      file = fopen("C:/Users/thiag/Desktop/Trabalho_1/trabalhos-px/tp1/imagemp3peq.ppm", "r");
+      if (file == NULL)
+      {
+        printf("Imagem não encontrada.\n");
+        break;
+      }
+      fclose(file);
+      printf("imagem encontrada\n"); // só pra verificar
 
-            if (gray_image != NULL)
-            {
-                free_image(gray_image);
-            }
-            printf("Encerrando o programa.\n");
-            return 0;
-        default:
-            printf("Opcao invalida. Tente novamente.\n");
-        }
+      // Carrega a imagem para a memória
+      image = load_from_ppm("C:/Users/thiag/Desktop/Trabalho_1/trabalhos-px/tp1/imagemp3peq.ppm");
+      if (image == NULL)
+      {
+        printf("Erro ao carregar a imagem.\n");
+        break;
+      }
+      else
+      {
+        printf("Imagem carregada com sucesso.\n");
+      }
+      break;
+
+    case 2:
+      // Converte a imagem para níveis de cinza
+      if (image == NULL)
+      {
+        printf("É preciso carregar uma imagem antes de convertê-la para níveis "
+               "de cinza.\n");
+        break;
+      }
+
+      // Image *image_gray = create(image->rows, image->cols, "P2");
+      if (image_gray == NULL)
+      {
+        printf("Erro ao criar a imagem em tons de cinza.\n");
+        break;
+      }
+
+      rgb_to_gray(image, image_gray);
+
+      // Libera a memória da imagem original
+      free_image(image);
+      free_image(image_gray);
+
+      break;
+
+    case 3:
+      // Grava a imagem no disco
+      if (image == NULL)
+      {
+        printf("É preciso carregar uma imagem antes de gravá-la.\n");
+        break;
+      }
+
+      char filename[100];
+      printf("Digite o caminho para salvar a imagem: ");
+      scanf("%s", filename);
+
+      write_to_ppm(image, filename);
+
+      break;
+
+    case 4:
+      // Sai do programa
+      free_image(image);
+      return 0;
     }
+  }
 
-    return 0;
+  return 0;
 }

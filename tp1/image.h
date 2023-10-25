@@ -1,13 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-typedef struct Image
-{
-    int rows;
-    int cols;
-    char type[3]; // "P2" for grayscale, "P3" for color
-    unsigned char **pixels;
-} Image;
+typedef struct image Image;
 
 Image *create(int rows, int cols, char type[]);
 Image *load_from_ppm(const char *filename);
