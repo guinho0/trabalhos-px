@@ -6,95 +6,99 @@
 
 int main()
 {
-  Image *image = NULL;
-  Image *image_gray = NULL;
-  FILE *file;
 
-  while (1)
+  int op;        // operação
+  char path[100]; /* Armazenando o nome do arquivo */
+  int option;
+  Image *img = (Image *)malloc(sizeof(Image *));// alocar imagem rgb
+  Image *image_gray = (Image *)malloc(sizeof(Image *));//alocar imagem em tons de cinza
+
+  while (op != 4)
   {
-    int option;
 
-    printf("Menu:\n");
-    printf("1. Carregar imagem\n");
-    printf("2. Converter para níveis de cinza\n");
-    printf("3. Gravar imagem\n");
-    printf("4. Sair\n");
-    printf("Escolha uma opção: ");
-    scanf("%d", &option);
+    printf("# Escolha uma opção: \n");
+    printf("1-Carregar imagem.\n");
+    printf("2-Converter para níveis de cinza.\n");
+    printf("3-Gravar imagem no disco.\n");
+    printf("4-Encerrar programa.\n");
 
-    switch (option)
+    scanf("\n%d", &op);
+
+    switch (op)
     {
     case 1:
+      printf(" \nCARREGAR IMAGEM");
 
-      // Verifica se a imagem pode ser carregada
-      file = fopen("C:/Users/thiag/Desktop/Trabalho_1/trabalhos-px/tp1/imagemp3peq.ppm", "r");
-      if (file == NULL)
-      {
-        printf("Imagem não encontrada.\n");
-        break;
-      }
-      fclose(file);
-      printf("imagem encontrada\n"); // só pra verificar
+      printf("\nDeseja utilizar o nome padrão 'image.ppm' para o arquivo?\n");
+      printf("(1) SIM\n");
+      printf("(2) NÃO\n");
+      scanf("%d", &option);
 
-      // Carrega a imagem para a memória
-      image = load_from_ppm("C:/Users/thiag/Desktop/Trabalho_1/trabalhos-px/tp1/imagemp3peq.ppm");
-      if (image == NULL)
+      if (option == 1)
       {
-        printf("Erro ao carregar a imagem.\n");
-        break;
+        strcpy(path, "image.ppm");
       }
-      else
+      else if (option == 2)
       {
-        printf("Imagem carregada com sucesso.\n");
+        printf("\nInforme o nome de origem do arquivo: \n");
+        scanf("%s", path);
       }
+
+      img = load_from_ppm(path);
+
+      printf("\n\nImagem carregada com sucesso.\n\n");
+
+      
       break;
 
-    case 2:
-      // Converte a imagem para níveis de cinza
-      if (image == NULL)
-      {
-        printf("É preciso carregar uma imagem antes de convertê-la para níveis "
-               "de cinza.\n");
+      case 2:
+        // Converte a imagem para níveis de cinza
+        if (img == NULL)
+        {
+          printf("Eh preciso carregar uma imagem antes de converte-la para niveis "
+                 "de cinza.\n");
+          break;
+        }
+
+        
+        if (image_gray == NULL)
+        {
+          printf("Erro ao criar a imagem em tons de cinza.\n");
+          break;
+        }
+
+        rgb_to_gray(img, image_gray);
+
+        // Libera a memória da imagem original
+        free_image(img);
+        free_image(image_gray);
+
         break;
-      }
 
-      // Image *image_gray = create(image->rows, image->cols, "P2");
-      if (image_gray == NULL)
-      {
-        printf("Erro ao criar a imagem em tons de cinza.\n");
+      case 3:
+        // Grava a imagem no disco
+        if (img == NULL)
+        {
+          printf("Eh preciso carregar uma imagem antes de grava-la.\n");
+          break;
+        }
+
+        char filename[100];
+        printf("Digite o caminho para salvar a imagem: ");
+        scanf("%s", filename);
+
+        write_to_ppm(img, filename);
+
         break;
+
+      case 4:
+        // Sai do programa
+        free_image(img);
+        return 0;
       }
+    }
 
-      rgb_to_gray(image, image_gray);
-
-      // Libera a memória da imagem original
-      free_image(image);
-      free_image(image_gray);
-
-      break;
-
-    case 3:
-      // Grava a imagem no disco
-      if (image == NULL)
-      {
-        printf("É preciso carregar uma imagem antes de gravá-la.\n");
-        break;
-      }
-
-      char filename[100];
-      printf("Digite o caminho para salvar a imagem: ");
-      scanf("%s", filename);
-
-      write_to_ppm(image, filename);
-
-      break;
-
-    case 4:
-      // Sai do programa
-      free_image(image);
       return 0;
     }
-  }
+  
 
-  return 0;
-}
