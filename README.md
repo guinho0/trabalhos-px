@@ -4,7 +4,7 @@
 
 ## Introdução
 
-Este arquivo README.md é a documentação para o projeto "TAD Image - Processador de Imagens PPM". O objetivo deste projeto é demonstrar o uso de um Tipo Abstrato de Dados (TAD) para leitura, processamento e gravação de imagens no formato PPM em linguagem de programação C. O projeto é composto por três arquivos: image.c, image.h e main.c.
+Este arquivo README.md é a documentação para o projeto "TAD Image - Processador de Imagens PPM". O objetivo deste projeto é demonstrar o uso de um Tipo Abstrato de Dados (TAD) para leitura, processamento e gravação de imagens no formato PPM em linguagem de programação C. O projeto é composto por três arquivos principais: image.c, image.h e main.c.
 
 ## Funções Implementadas
 
@@ -17,10 +17,15 @@ O projeto implementa as seguintes funções relacionadas ao TAD Image:
 - `void write_to_ppm(Image* image, const char* filename)`: Esta função grava uma imagem em um arquivo PPM com o nome especificado.
 
 - `void rgb_to_gray(Image* image_rgb, Image* image_gray)`: Esta função converte uma imagem colorida em uma imagem em tons de cinza, seguindo a fórmula matemática dada.
+-`void free_image(Image *image)`: Esta função libera a memória que alocada para a imagem.
 
 ## Compilação e Execução
 Nesse projeto, usamos o arquivo Makefile que facilita a execução do projeto.
-Para compilar o projeto, execute o seguinte comando no terminal: make(ou mingw32-make).
+Para compilar o projeto, execute o seguinte comando no terminal: make all.
+
+obs: talvez no windows seja necessário usar o mingw32-make all ou o mingw64-make all.
+
+obs2: voce pode tambem usar o comando: gcc main.c image.c -o tp1
 
 
 
@@ -31,11 +36,9 @@ O programa oferece um menu de opções que permite carregar uma imagem, convert�
 
 ## Formato de Imagem Suportado
 
-O programa suporta imagens PPM nos formatos "P3" (texto) e "P6" (binário). Certifique-se de que suas imagens estejam em um desses formatos.
+O programa suporta imagens PPM nos formatos "P2" (tons de cinza) e "P3" ( colorido e codificado em ASCII). Certifique-se de que suas imagens estejam em um desses formatos.
 
-## Contribuições
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir problemas ou enviar solicitações de pull para melhorar este projeto.
 
 ## Licença
 
@@ -43,5 +46,9 @@ Este projeto é licenciado sob a Licença MIT. Consulte o arquivo LICENSE para o
 
 ---
 
-**Apreciamos sua participação!** 📸
+## Erros (apenas para a correção do professor)
+
+erro 1: erro ao compilar pelo make all.(tive que usar o mingw32-make all).
+erro 2: o código não está carregando a imagem, não sei se o erro é na imagem ou no código, ao abrir a imagem em editores aparentemente está tudo certo com ela. Assim, acredito que o está em create, pois o type não está retornando P3 ou P2, se isso estiver aqui, provavelmente é porque não deu tempo de resolver.
+erro 3: se a imagem não carrega eu não consigo saber se as outras funções estão funcionando #tristeza.
 
